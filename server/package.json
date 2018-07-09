@@ -1,0 +1,29 @@
+{
+  "name": "akkajs_demo_server",
+  "version": "1.0.0",
+  "description": "Demo usage of Akka.Js from JS Server side",
+  "author": "Andrea Peruffo",
+  "license": "MIT",
+  "dependencies": {
+    "akkajs": "^1.0.1",
+    "node-tweet-stream": "^2.0.3",
+    "promise-ws": "^0.4.1"
+  },
+  "scripts": {
+    "start": "node js/main.out.js",
+    "build": "webpack",
+    "fmt": "eslint --fix *.js"
+  },
+  "devDependencies": {
+    "eslint": "^4.9.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-config-standard-jsx": "^4.0.2",
+    "eslint-loader": "^1.9.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "^7.4.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "webpack": "^3.5.6"
+  }
+}
