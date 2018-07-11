@@ -17,8 +17,9 @@ class TwitterListener extends Actor {
   preStart () {
     this.twitter = new TwitterModule(credentials)
     this.twitter.on("tweet", (tweet) => {
-      for (let i in this.listeners) {
-        this.listeners[i].tell(tweet)
+      const children = this.children()
+      for (let i in children) {
+        children[i].tell(tweet)
       }
     })
   }
@@ -27,15 +28,8 @@ class TwitterListener extends Actor {
   }
   receive (msg) {
     if (msg) {
-      if (msg.subscribe) {
-        this.listeners.push(msg.subscribe)
-      } else if (msg.unsubscribe) {
-        for (let i = 0; i < this.listeners.length; i++) {
-          if (this.listeners[i].path() === msg.unsubscribe.path()) {
-            this.listeners.splice(i, 1)
-            break
-          }
-        }
+      if (msg.ws) {
+        this.spawn(new TwitterService(msg.ws))
       } else if (msg.track) {
         this.twitter.track(msg.track)
       }
@@ -44,22 +38,21 @@ class TwitterListener extends Actor {
 }
 
 class TwitterService extends Actor {
-  constructor (ws, twitterListener) {
+  constructor (ws) {
     super()
     this.ws = ws
-    this.twitterListener = twitterListener
     this.preStart = this.preStart.bind(this)
     this.receive = this.receive.bind(this)
     this.topics = []
   }
   preStart () {
-    this.twitterListener.tell({subscribe: this.self()})
+    this.parent().tell({subscribe: this.self()})
     this.ws.on("message", (msg) => {
       this.topics.push(msg)
-      this.twitterListener.tell({track: msg})
+      this.parent().tell({track: msg})
     })
     this.ws.on("close", () => {
-      this.twitterListener.tell({unsubscribe: this.self()})
+      this.parent().tell({unsubscribe: this.self()})
       this.self().kill()
     })
   }
@@ -87,7 +80,7 @@ const main = async () => {
   const server = await Server.create({ port })
 
   server.onConnection((client) => {
-    system.spawn(new TwitterService(client.ws(), twitterListener))
+    twitterListener.tell({ ws: client.ws() })
   })
 }
 
