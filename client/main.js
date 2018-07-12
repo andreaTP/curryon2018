@@ -3,6 +3,7 @@ const { UiManager } = require("akkajs-dom/page")
 
 new UiManager(
   new Worker("./js/twitterUI.out.js"),
+  // require("./twitterUI.js"),
   {
     name: "twitter",
     handlers: require("./dom-handlers.js")

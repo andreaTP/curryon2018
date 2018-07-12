@@ -26,9 +26,13 @@ class TrackInput extends DomActor {
 }
 
 class TwitterUiActor extends DomActor {
-  constructor (wsActor) {
+  constructor (proxy) {
     super("root")
-    this.wsActor = wsActor
+    this.proxy = proxy
+  }
+  postMount () {
+    const wsActor = this.spawn(new TwitterSocket(this.proxy, "socket"))
+    this.spawn(new TrackInput(wsActor))
   }
   render (value) {
     let from = "finger crossed"
@@ -43,9 +47,6 @@ class TwitterUiActor extends DomActor {
       <p id={"msg"}>{msg}</p>
     ]}</div>
   }
-  postMount () {
-    this.spawn(new TrackInput(this.wsActor))
-  }
   receive (msg) {
     this.update(msg)
   }
@@ -54,7 +55,7 @@ class TwitterUiActor extends DomActor {
 class TwitterSocket extends ConnectedChannel {
   operative (msg) {
     if (msg && msg.from && msg.text) { // is a tweet
-      ui.tell(msg)
+      this.parent().tell(msg)
     } else {
       this.channel.tell(msg)
     }
@@ -63,8 +64,6 @@ class TwitterSocket extends ConnectedChannel {
 
 const proxy = system.spawn(new WorkerProxy())
 
-const wsActor = system.spawn(new TwitterSocket(proxy, "socket"))
-
-const ui = system.spawn(new TwitterUiActor(wsActor))
+system.spawn(new TwitterUiActor(proxy))
 
 export { localPort } from "akkajs-dom/work"
