@@ -46,13 +46,11 @@ class TwitterService extends Actor {
     this.topics = []
   }
   preStart () {
-    this.parent().tell({subscribe: this.self()})
     this.ws.on("message", (msg) => {
       this.topics.push(msg)
       this.parent().tell({track: msg})
     })
     this.ws.on("close", () => {
-      this.parent().tell({unsubscribe: this.self()})
       this.self().kill()
     })
   }
